@@ -222,9 +222,9 @@ def main():
     output_price = output_tokens // 1000 * 0.0032
 
     print(f"\nToken Estimation:")
-    print(f"Input tokens (approx): {input_tokens:,} (${input_price})")
-    print(f"Output tokens (approx): {output_tokens:,}  (${output_price})")
-    print(f"Total inference cost: ${input_price + output_price}")
+    print(f"Input tokens (approx): {input_tokens:,} (${input_price:.2f})")
+    print(f"Output tokens (approx): {output_tokens:,}  (${output_price:.2f})")
+    print(f"Total inference cost: ${(input_price + output_price):.2f}")
 
 if __name__ == "__main__":
     main()
