@@ -8,9 +8,11 @@ import boto3
 import sys
 import warnings
 import re
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta  # You might need to pip install python-dateutil
 
 #MODEL_ID = "anthropic.claude-3-5-sonnet-20241022-v2:0"
-MODEL_ID = "amazon.nova-pro-v1:0"
+MODEL_ID = "amazon.nova-lite-v1:0"
 AWS_REGION = "us-east-1"
 AWS_PROFILE = "us-east-1-profile"
 
@@ -27,7 +29,7 @@ def cleanup_temp_file(filename):
         if os.path.exists(filename):
             print(f"Warning: Temporary file {filename} still exists")
 
-def get_streetcheck_data(postcode, data_type="postcode"):
+def get_streetcheck_data(postcode, data_type="postcode", data_date=None):
     """
     Get data from StreetCheck for a given postcode
     Args:
@@ -37,7 +39,7 @@ def get_streetcheck_data(postcode, data_type="postcode"):
         str: HTML content of the page
     """
     # Clean the postcode - remove spaces and convert to uppercase
-    postcode = postcode.strip().replace(" ", "").upper()
+    postcode = postcode.strip().replace(" ", "").lower()
 
     # Base URL with path based on data type
     base_url = "https://www.streetcheck.co.uk/"
@@ -45,8 +47,10 @@ def get_streetcheck_data(postcode, data_type="postcode"):
         base_url += "houseprices/"
     elif data_type == "postcode":
         base_url += "postcode/"
+    elif data_type == "crime":
+        base_url += f"crime/"
     else:
-        raise ValueError("data_type must be either 'postcode' or 'houseprices'")
+        raise ValueError("data_type must be either 'postcode', 'houseprices', or 'crime'")
 
     # Common user agents to rotate between
     user_agents = [
@@ -76,7 +80,7 @@ def get_streetcheck_data(postcode, data_type="postcode"):
 
         # Make the request
         response = requests.get(
-            base_url + postcode,
+            base_url + postcode + (f"/{data_date}" if data_date else ""),
             headers=headers,
             timeout=10,
             verify=True
@@ -84,6 +88,7 @@ def get_streetcheck_data(postcode, data_type="postcode"):
 
         # Raise an exception for bad status codes
         response.raise_for_status()
+        print(f"Fetched {data_type} data for postcode {postcode}" + (f"/{data_date}" if data_date else ""))
 
         # Return the HTML content
         return response.text
@@ -116,6 +121,7 @@ Please follow these steps to create your summary:
     - The area's general characteristics
     - Available amenities, including broadband speed
     - Demographics
+    - Crime (note that three months worth of crime data is here, break down by month); make sure to report the total count by month
     - Notable statistics
 
 3. Pay special attention to the following categories and their associated percentages:
@@ -130,6 +136,7 @@ Please follow these steps to create your summary:
     - The percentage of social rented housing
     - The percentage of households with deprivation across all dimensions
     - The level of unemployment
+    - The total count of crimes reported by category
 
 5. Present your work as a crisp summary of all the data you have gathered. Make sure to:
     - Quote specific statistics and percentages from the text for each category
@@ -139,6 +146,73 @@ Please follow these steps to create your summary:
     - List any other key facts and statistics you've identified; make sure to note the level of deprivation in total, and in more than one dimension
 
 Remember to maintain a professional and objective tone throughout your data extraction and summary.
+
+Here is an example of the report that you must write:
+
+<example_report>
+### Summary of Cockfosters Road, Barnet, EN4 0JT
+
+#### General Characteristics
+
+Cockfosters Road in Barnet, London, is an urban area under the Enfield Local Authority. It falls within the Cockfosters ward/electoral division and the Southgate and Wood Green constituency. The postcode EN4 0JT is part of this area.
+
+
+#### Amenities
+
+- **Broadband:** The postcode supports superfast broadband (30Mbps+).
+- **Nearby Services:** The area has several nearby railway stations, Tube/DLR stations, primary and secondary schools, GP practices, dentists, hospitals, and opticians.
+
+
+#### Demographics
+
+- **Population:** 498 residents.
+- **Gender:** 45% male, 55% female.
+- **Age Groups:** A significant proportion (41%) are aged 65+.
+- **Health:** 81.7% rated their health as Very Good or Good.
+
+- **Education:** 187 residents have a degree or similar professional qualification, 11 have an apprenticeship, 44 have HNC, HND, or 2+ A Levels, 48 have 5+ GCSEs, 36 have 1-4 GCSEs, and 98 have no qualifications.
+
+- **Ethnic Groups:** 71% White, 17 Mixed Ethnicity, 46 Indian, 3 Pakistani, 5 Chinese, 13 Other Asian, 5 Black African, 5 Black Caribbean, 3 Other Black/African/Caribbean, 1 Arab, 47 Other.
+
+- **Country of Birth:** 375 born in the UK, 47 from the European Union, 18 from Rest of Europe, 23 from Africa, 32 from Middle East and Asia, 4 from The Americas.
+
+- **Religion:** 87 No Religion, 223 Christian, 6 Buddhist, 28 Hindu, 77 Jewish, 20 Muslim, 3 Sikh, 13 Other Religion, 44 Not Stated.
+
+
+#### Economy
+
+- **Economic Activity:** 109 Full-Time Employee, 41 Part-Time Employee, 24 Self Employed (No Subordinates), 22 Self Employed (With Subordinates), 14 Unemployed, 15 Full-Time Student, 178 Retired, 20 Looking After Home or Family, 6 Long-Term Sick or Disabled, 12 Other.
+
+
+#### Housing
+
+- **Housing Types:** 85 Detached, 7 Semi-Detached, 24 Terraced, 86 Flat (Purpose-Built), 6 Flat (Converted), Total 208.
+
+- **Housing Tenure:** 114 Owned Outright, 54 Owned with Mortgage, 1 Rented: Other Social, 30 Rented: Private Landlord inc. letting agents, 8 Rented: Other, Total 207.
+
+- **Household Deprivation:** 125 Not Deprived, 70 Deprived In One Dimension, 13 Deprived In Two Dimensions, 1 Deprived In Three Dimensions, Total 209.
+
+
+#### Crime Statistics
+
+- **September 2024:** 3 Anti-social behaviour, 1 Criminal damage and arson, 1 Drugs, 4 Other theft, 2 Robbery, 4 Shoplifting, 1 Vehicle crime, 6 Violence and sexual offences, 1 Other crime.
+
+- **October 2024:** 1 Anti-social behaviour, 1 Vehicle crime.
+
+- **November 2024:** 1 Anti-social behaviour, 1 Public order, 1 Vehicle crime, 1 Violence and sexual offences.
+
+
+#### Notable Statistics
+
+- **Social Rented Housing:** 0.5% (1/207).
+- **Households with Deprivation Across All Dimensions:** 0.5% (1/209).
+- **Unemployment:** 3.2% (14/441).
+- **Total Crimes Reported:**
+    - **September 2024:** 23 crimes.
+    - **October 2024:** 2 crimes.
+    - **November 2024:** 4 crimes.
+</example_report>
+
     '''.format(text=text_content)
 
     messages = [
@@ -165,9 +239,37 @@ Remember to maintain a professional and objective tone throughout your data extr
             inferenceConfig=inference_config
         )
         return response['output']['message']['content'][0]['text']
-    except ClientError as err:
+    except Exception as err:
         print(f"Error getting summary: {err.response['Error']['Message']}")
         return None
+
+
+# get trailing 3 months of crime data
+def get_three_months_data(postcode):
+    results = ""
+    current_date = datetime.now()
+    four_months_ago = current_date - relativedelta(months=4)
+
+    # Iterate through the last 3 months (2 months ago, 1 month ago, and current month)
+    for i in range(3):
+        # Calculate the date for this iteration
+        target_date = four_months_ago + relativedelta(months=i)
+        formatted_date = target_date.strftime('%Y/%m')
+
+        # Get data for this month
+        postcode_html = get_streetcheck_data(postcode, "crime", formatted_date)
+
+        if postcode_html:
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False) as temp_file:
+                temp_file.write(postcode_html)
+                md = MarkItDown()
+                result = md.convert(temp_file.name)
+                # Add month identifier before the content
+                results += f"Data for {formatted_date}:\n"
+                results += result.text_content + "\n\n"  # Add double newline for separation
+                cleanup_temp_file(temp_file.name)
+
+    return results
 
 # Modified main function to include the summarization
 def main():
@@ -205,6 +307,10 @@ def main():
             result = md.convert(temp_file.name)
             results += result.text_content
             cleanup_temp_file(temp_file.name)
+
+    # get the crime data
+    crime_text = get_three_months_data(postcode)
+    results += crime_text
 
     # Initialize Bedrock client
     bedrock_runtime = initialize_bedrock_client(AWS_PROFILE)
