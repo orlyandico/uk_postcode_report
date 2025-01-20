@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta  # You might need to pip install python-dateutil
 
 #MODEL_ID = "anthropic.claude-3-5-sonnet-20241022-v2:0"
-MODEL_ID = "amazon.nova-lite-v1:0"
+MODEL_ID = "amazon.nova-pro-v1:0"
 AWS_REGION = "us-east-1"
 AWS_PROFILE = "us-east-1-profile"
 
@@ -159,8 +159,8 @@ Cockfosters Road in Barnet, London, is an urban area under the Enfield Local Aut
 
 #### Amenities
 
-- **Broadband:** The postcode supports superfast broadband (30Mbps+).
-- **Nearby Services:** The area has several nearby railway stations, Tube/DLR stations, primary and secondary schools, GP practices, dentists, hospitals, and opticians.
+- **Broadband:** [Give a summary of broadband availability]
+- **Nearby Services:** [Give a summary of nearby railway stations, schools, GP practices, dentists, and so on]
 
 
 #### Demographics
@@ -172,25 +172,25 @@ Cockfosters Road in Barnet, London, is an urban area under the Enfield Local Aut
 
 - **Education:** 187 residents have a degree or similar professional qualification, 11 have an apprenticeship, 44 have HNC, HND, or 2+ A Levels, 48 have 5+ GCSEs, 36 have 1-4 GCSEs, and 98 have no qualifications.
 
-- **Ethnic Groups:** 71% White, 17 Mixed Ethnicity, 46 Indian, 3 Pakistani, 5 Chinese, 13 Other Asian, 5 Black African, 5 Black Caribbean, 3 Other Black/African/Caribbean, 1 Arab, 47 Other.
+- **Ethnic Groups:** [provide percentage of each ethnicity]
 
-- **Country of Birth:** 375 born in the UK, 47 from the European Union, 18 from Rest of Europe, 23 from Africa, 32 from Middle East and Asia, 4 from The Americas.
+- **Country of Birth:** [provide percentage of each country of birth]
 
-- **Religion:** 87 No Religion, 223 Christian, 6 Buddhist, 28 Hindu, 77 Jewish, 20 Muslim, 3 Sikh, 13 Other Religion, 44 Not Stated.
+- **Religion:** [provide percentage of each religion]
 
 
 #### Economy
 
-- **Economic Activity:** 109 Full-Time Employee, 41 Part-Time Employee, 24 Self Employed (No Subordinates), 22 Self Employed (With Subordinates), 14 Unemployed, 15 Full-Time Student, 178 Retired, 20 Looking After Home or Family, 6 Long-Term Sick or Disabled, 12 Other.
+- **Economic Activity:** [provide percentage for each employment type]
 
 
 #### Housing
 
-- **Housing Types:** 85 Detached, 7 Semi-Detached, 24 Terraced, 86 Flat (Purpose-Built), 6 Flat (Converted), Total 208.
+- **Housing Types:** [provide count and percentage for each type, and total]
 
-- **Housing Tenure:** 114 Owned Outright, 54 Owned with Mortgage, 1 Rented: Other Social, 30 Rented: Private Landlord inc. letting agents, 8 Rented: Other, Total 207.
+- **Housing Tenure:** [provide count and percentage for each tenure, and total]
 
-- **Household Deprivation:** 125 Not Deprived, 70 Deprived In One Dimension, 13 Deprived In Two Dimensions, 1 Deprived In Three Dimensions, Total 209.
+- **Household Deprivation:** [provide count and percentage for each deprivation level, and total]
 
 
 #### Crime Statistics
@@ -205,7 +205,7 @@ Cockfosters Road in Barnet, London, is an urban area under the Enfield Local Aut
 #### Notable Statistics
 
 - **Social Rented Housing:** 0.5% (1/207).
-- **Households with Deprivation Across All Dimensions:** 0.5% (1/209).
+- **Households with Deprivation Across At Least One Dimensions:** 40% (84/209).
 - **Unemployment:** 3.2% (14/441).
 - **Total Crimes Reported:**
     - **September 2024:** 23 crimes.
