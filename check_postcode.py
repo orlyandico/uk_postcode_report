@@ -147,114 +147,92 @@ def initialize_bedrock_client(aws_profile: str) -> boto3.client:
 
 def get_content_summary(bedrock_runtime: boto3.client, text_content: str) -> str:
     prompt = '''
-You are a data analyst specializing in demographic and housing statistics. Your task is to create a concise, factual summary of a given area based on the provided information. Here's the content you need to analyze:
+You are a data analyst specializing in demographic and housing statistics. Your task is to create a concise, factual summary of a given area based on the provided information.
+
+Here is the area description you need to analyze:
 
 <area_description>
 {text}
 </area_description>
 
-Please follow these steps to create your summary:
+Instructions:
 
-1. Carefully read through the provided content.
+1. Read through the area description carefully.
 
-2. In your analysis, identify and extract key information about:
-    - The area's general characteristics
+2. Wrap your analysis inside <data_extraction> tags. Break down the information into the following categories:
+    - General characteristics of the area
     - Available amenities, including broadband speed
     - Demographics
-    - Crime (note that three months worth of crime data is here, break down by month); make sure to report the total count by month
-    - Notable statistics
-
-3. Pay special attention to the following categories and their associated percentages:
-    - Housing types
-    - Housing tenure
-    - Housing prices
-    - Household deprivation
+    - Housing types and tenure
     - Economic activity
-    - Ethnic groups
+    - Household deprivation
+    - Crime statistics
 
-4. Specifically highlight:
+    For each category:
+    - List specific data points, including exact numbers and percentages where available.
+    - Calculate percentages explicitly (e.g., "Social rented housing: 150 out of 1000 total = 15%").
+    - Sum up totals where applicable (e.g., total crimes across all three months).
+    - Note any missing or unclear information.
+
+3. Pay special attention to:
     - The percentage of social rented housing
     - The percentage of households with deprivation across all dimensions
     - The level of unemployment
-    - The total count of crimes reported by category
+    - The total count of crimes reported by category (sum across all three months)
 
-5. Present your work as a crisp summary of all the data you have gathered. Make sure to:
-    - Quote specific statistics and percentages from the text for each category
-    - Calculate the total percentage for each category
-    - If percentages within a category exceed 100%, show your work in adjusting the figures proportionally to ensure they sum to 100%
-    - Organize the extracted information into clear categories (e.g., Housing, Demographics, Economy)
-    - List any other key facts and statistics you've identified; make sure to note the level of deprivation in total, and in more than one dimension
+4. Based on your analysis, create a summary report using the following structure:
 
-Remember to maintain a professional and objective tone throughout your data extraction and summary.
+```markdown
+### Summary of [Area Name]
 
-Here is an example of the report that you must write:
-
-<example_report>
-### Summary of High Street, Kimpton, Hitchin, SG4 8PT
+#### Notable Statistics
+- **Social Rented Housing:** [percentage] ([count]/[total])
+- **Households with Deprivation in One or More Dimensions:** [percentage] ([count]/[total])
+- **Unemployment Rate:** [percentage] ([count]/[total])
+- **Quarter Total Crime/Population:** [percentage] ([total crimes]/[population])
+- **Largest Ethnic Group:** [group name] ([percentage])
+- **Recent House Sale:** [price] ([date])
 
 #### General Characteristics
-High Street is located in Kimpton, Hitchin, within the North Hertfordshire Local Authority. It falls within the Codicote & Kimpton ward/electoral division and the Hitchin constituency. The area is classified as a Small Town or Fringe Area.
+[Brief description of the area's location, classification, and any other notable features]
 
 #### Amenities
-- **Broadband:** Ultrafast broadband (300Mbps+) is available
+- **Broadband:** [speed available]
 - **Nearest Services:**
-  - Railway Station: Harpenden (3.4 miles)
-  - Primary School: Kimpton Primary School (130 yards)
-  - Secondary School: Katherine Warington School (2.6 miles)
-  - GP Surgery: Whitwell Surgery (1.9 miles)
+    [List key services and their distances]
 
 #### Demographics
-- **Population:** 327 residents
-- **Gender:** 47% male (153), 53% female (174)
+- **Population:** [number] residents
+- **Gender:** [male percentage] male ([count]), [female percentage] female ([count])
 
 - **Ethnic Groups:**
-  - White: 93.6% (306)
-  - Mixed Ethnicity: 5.8% (19)
-  - Indian: 0.3% (1)
-  - Other Asian: 0.3% (1)
+    [List major ethnic groups with percentages and counts]
 
 #### Economy
 - **Economic Activity:**
-  - Full-Time Employee: 28.1% (72)
-  - Part-Time Employee: 11.7% (30)
-  - Self Employed: 19.1% (49)
-  - Unemployed: 3.1% (8)
-  - Full-Time Student: 5.5% (14)
-  - Retired: 25.8% (66)
-  - Other: 6.7% (17)
+    [List categories with percentages and counts]
 
 #### Housing
-- **Housing Types:** (Total 127)
-  - Detached: 35.4% (45)
-  - Semi-Detached: 29.1% (37)
-  - Terraced: 33.9% (43)
-  - Flats: 1.6% (2)
+- **Housing Types:** (Total [number])
+    [List types with percentages and counts]
 
-- **Housing Tenure:** (Total 127)
-  - Owned Outright: 43.3% (55)
-  - Owned with Mortgage: 40.9% (52)
-  - Social Rented: 7.1% (9)
-  - Private Rented: 8.7% (11)
+- **Housing Tenure:** (Total [number])
+    [List tenure types with percentages and counts]
 
 - **Household Deprivation:**
-  - Not Deprived: 68.5% (87)
-  - Deprived in One Dimension: 26.8% (34)
-  - Deprived in Two Dimensions: 3.9% (5)
-  - Deprived in Three Dimensions: 0.8% (1)
-  - Deprived in Four Dimensions: 0%
+    [List deprivation levels with percentages and counts]
 
-#### Crime Statistics
-- **October 2024:** 3 total crimes (1 Anti-social behaviour, 1 Vehicle crime, 1 Violence and sexual offences)
-- **November 2024:** 3 total crimes (1 Anti-social behaviour, 1 Other theft, 1 Violence and sexual offences)
-- **December 2024:** 9 total crimes (1 Anti-social behaviour, 2 Vehicle crime, 5 Violence and sexual offences, 1 Other crime)
+#### Crime Statistics (Quarter Total: [sum of all three months])
+[List crime statistics for each month, including total crimes and breakdown by category]
+```
 
-#### Notable Statistics
-- **Social Rented Housing:** 7.1% (9/127)
-- **Households with Deprivation in One or More Dimensions:** 31.5% (40/127)
-- **Unemployment Rate:** 3.1% (8/256)
-- **Recent House Sale:** £777,500 (June 2021)
-</example_report>
+5. Ensure that all percentages are accurate and add up correctly within their categories.
 
+6. In the Notable Statistics section, make sure to sum up the total crimes across all three months for the Quarter Total Crime/Population statistic.
+
+7. Present your final report in <summary> tags.
+
+Remember to maintain a professional and objective tone throughout the report. Focus on presenting the facts clearly and concisely.
     '''.format(text=text_content)
 
     messages = [
@@ -361,11 +339,13 @@ def main():
 - Output tokens (approx): {output_tokens:,} (${output_price:.2f})
 - Total inference cost: ${(input_price + output_price):.2f}
 ''')
-    # Prepare the complete output text
-    output_text = f"""# Postcode Summary for {postcode}
 
-{summary}
-"""
+    # Extract content between <summary> tags
+    summary_content = re.search(r'<summary>(.*?)</summary>', summary, re.DOTALL)
+    if summary_content:
+        output_text = summary_content.group(1)
+    else:
+        output_text = summary
 
     # Write to file
     try:
