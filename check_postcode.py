@@ -1,24 +1,64 @@
-import requests
-import time
-import random
-import tempfile
+# Standard library imports
 import os
-from markitdown import MarkItDown
-import boto3
-import sys
-import warnings
 import re
+import sys
+import tempfile
+import time
+import warnings
 from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta  # You might need to pip install python-dateutil
+import random
 
-#MODEL_ID = "anthropic.claude-3-5-sonnet-20241022-v2:0"
-MODEL_ID = "amazon.nova-pro-v1:0"
-AWS_REGION = "us-east-1"
-AWS_PROFILE = "us-east-1-profile"
+# Third-party imports
+import boto3
+from bs4 import BeautifulSoup
+from dateutil.relativedelta import relativedelta
+from markitdown import MarkItDown
+import requests
+
+MODEL_ID = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+#MODEL_ID = "amazon.nova-pro-v1:0"
+AWS_REGION = "us-west-2"
+AWS_PROFILE = "us-west-2-profile"
 
 # Suppress the specific datetime warning from botocore
 warnings.filterwarnings('ignore', category=DeprecationWarning,
                        message='datetime.datetime.utcnow.*')
+
+
+
+def html_to_plain_text(html_string):
+    """
+    Convert HTML string to plain text, removing links and image references.
+
+    Args:
+        html_string (str): String containing HTML content
+
+    Returns:
+        str: Plain text with HTML tags and media references removed
+    """
+    # Create BeautifulSoup object with 'html.parser'
+    soup = BeautifulSoup(html_string, 'html.parser')
+
+    # Remove all script and style elements
+    for script in soup(["script", "style"]):
+        script.decompose()
+
+    # Remove all images
+    for img in soup.find_all('img'):
+        img.decompose()
+
+    # Replace links with their text content
+    for a in soup.find_all('a'):
+        a.replace_with(a.text)
+
+    # Get text and normalize whitespace
+    text = soup.get_text()
+    lines = (line.strip() for line in text.splitlines())
+    chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+    text = ' '.join(chunk for chunk in chunks if chunk)
+
+    return text.strip()
+
 
 def cleanup_temp_file(filename):
     try:
@@ -91,7 +131,7 @@ def get_streetcheck_data(postcode, data_type="postcode", data_date=None):
         print(f"Fetched {data_type} data for postcode {postcode}" + (f"/{data_date}" if data_date else ""))
 
         # Return the HTML content
-        return response.text
+        return html_to_plain_text(response.text)
 
     except requests.RequestException as e:
         print(f"Error fetching {data_type} data for postcode {postcode}: {str(e)}")
@@ -150,67 +190,69 @@ Remember to maintain a professional and objective tone throughout your data extr
 Here is an example of the report that you must write:
 
 <example_report>
-### Summary of Cockfosters Road, Barnet, EN4 0JT
+### Summary of High Street, Kimpton, Hitchin, SG4 8PT
 
 #### General Characteristics
-
-Cockfosters Road in Barnet, London, is an urban area under the Enfield Local Authority. It falls within the Cockfosters ward/electoral division and the Southgate and Wood Green constituency. The postcode EN4 0JT is part of this area.
-
+High Street is located in Kimpton, Hitchin, within the North Hertfordshire Local Authority. It falls within the Codicote & Kimpton ward/electoral division and the Hitchin constituency. The area is classified as a Small Town or Fringe Area.
 
 #### Amenities
-
-- **Broadband:** [Give a summary of broadband availability]
-- **Nearby Services:** [Give a summary of nearby railway stations, schools, GP practices, dentists, and so on]
-
+- **Broadband:** Ultrafast broadband (300Mbps+) is available
+- **Nearest Services:**
+  - Railway Station: Harpenden (3.4 miles)
+  - Primary School: Kimpton Primary School (130 yards)
+  - Secondary School: Katherine Warington School (2.6 miles)
+  - GP Surgery: Whitwell Surgery (1.9 miles)
 
 #### Demographics
+- **Population:** 327 residents
+- **Gender:** 47% male (153), 53% female (174)
 
-- **Population:** 498 residents.
-- **Gender:** 45% male, 55% female.
-- **Age Groups:** A significant proportion (41%) are aged 65+.
-- **Health:** 81.7% rated their health as Very Good or Good.
-
-- **Education:** 187 residents have a degree or similar professional qualification, 11 have an apprenticeship, 44 have HNC, HND, or 2+ A Levels, 48 have 5+ GCSEs, 36 have 1-4 GCSEs, and 98 have no qualifications.
-
-- **Ethnic Groups:** [provide percentage of each ethnicity]
-
-- **Country of Birth:** [provide percentage of each country of birth]
-
-- **Religion:** [provide percentage of each religion]
-
+- **Ethnic Groups:**
+  - White: 93.6% (306)
+  - Mixed Ethnicity: 5.8% (19)
+  - Indian: 0.3% (1)
+  - Other Asian: 0.3% (1)
 
 #### Economy
-
-- **Economic Activity:** [provide percentage for each employment type]
-
+- **Economic Activity:**
+  - Full-Time Employee: 28.1% (72)
+  - Part-Time Employee: 11.7% (30)
+  - Self Employed: 19.1% (49)
+  - Unemployed: 3.1% (8)
+  - Full-Time Student: 5.5% (14)
+  - Retired: 25.8% (66)
+  - Other: 6.7% (17)
 
 #### Housing
+- **Housing Types:** (Total 127)
+  - Detached: 35.4% (45)
+  - Semi-Detached: 29.1% (37)
+  - Terraced: 33.9% (43)
+  - Flats: 1.6% (2)
 
-- **Housing Types:** [provide count and percentage for each type, and total]
+- **Housing Tenure:** (Total 127)
+  - Owned Outright: 43.3% (55)
+  - Owned with Mortgage: 40.9% (52)
+  - Social Rented: 7.1% (9)
+  - Private Rented: 8.7% (11)
 
-- **Housing Tenure:** [provide count and percentage for each tenure, and total]
-
-- **Household Deprivation:** [provide count and percentage for each deprivation level, and total]
-
+- **Household Deprivation:**
+  - Not Deprived: 68.5% (87)
+  - Deprived in One Dimension: 26.8% (34)
+  - Deprived in Two Dimensions: 3.9% (5)
+  - Deprived in Three Dimensions: 0.8% (1)
+  - Deprived in Four Dimensions: 0%
 
 #### Crime Statistics
-
-- **September 2024:** 3 Anti-social behaviour, 1 Criminal damage and arson, 1 Drugs, 4 Other theft, 2 Robbery, 4 Shoplifting, 1 Vehicle crime, 6 Violence and sexual offences, 1 Other crime.
-
-- **October 2024:** 1 Anti-social behaviour, 1 Vehicle crime.
-
-- **November 2024:** 1 Anti-social behaviour, 1 Public order, 1 Vehicle crime, 1 Violence and sexual offences.
-
+- **October 2024:** 3 total crimes (1 Anti-social behaviour, 1 Vehicle crime, 1 Violence and sexual offences)
+- **November 2024:** 3 total crimes (1 Anti-social behaviour, 1 Other theft, 1 Violence and sexual offences)
+- **December 2024:** 9 total crimes (1 Anti-social behaviour, 2 Vehicle crime, 5 Violence and sexual offences, 1 Other crime)
 
 #### Notable Statistics
-
-- **Social Rented Housing:** 0.5% (1/207).
-- **Households with Deprivation Across At Least One Dimensions:** 40% (84/209).
-- **Unemployment:** 3.2% (14/441).
-- **Total Crimes Reported:**
-    - **September 2024:** 23 crimes.
-    - **October 2024:** 2 crimes.
-    - **November 2024:** 4 crimes.
+- **Social Rented Housing:** 7.1% (9/127)
+- **Households with Deprivation in One or More Dimensions:** 31.5% (40/127)
+- **Unemployment Rate:** 3.1% (8/256)
+- **Recent House Sale:** £777,500 (June 2021)
 </example_report>
 
     '''.format(text=text_content)
@@ -260,18 +302,12 @@ def get_three_months_data(postcode):
         postcode_html = get_streetcheck_data(postcode, "crime", formatted_date)
 
         if postcode_html:
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False) as temp_file:
-                temp_file.write(postcode_html)
-                md = MarkItDown()
-                result = md.convert(temp_file.name)
-                # Add month identifier before the content
-                results += f"Data for {formatted_date}:\n"
-                results += result.text_content + "\n\n"  # Add double newline for separation
-                cleanup_temp_file(temp_file.name)
+            results += f"Data for {formatted_date}:\n"
+            results += postcode_html + "\n\n"  # Add double newline for separation
 
     return results
 
-# Modified main function to include the summarization
+
 def main():
     # Set default postcode for Knightsbridge/Kensington area
     default_postcode = "SW72BU"  # One of London's most expensive areas
@@ -280,33 +316,28 @@ def main():
     if len(sys.argv) > 1:
         postcode = sys.argv[1].strip().replace(" ", "").lower()
         if not postcode:  # If postcode is empty after cleaning
-            print(f"Invalid postcode provided, using default: {default_postcode} (Knightsbridge)")
             postcode = default_postcode
     else:
-        print(f"No postcode provided, using default: {default_postcode} (Knightsbridge)")
         postcode = default_postcode
+
+    # Create filename
+    output_filename = f"postcode_summary_{postcode}.md"
+
+    # Exit if file already exists
+    if os.path.exists(output_filename):
+        print(f"Error: {output_filename} already exists.")
+        sys.exit(1)
 
     # Get both types of HTML content
     postcode_html = get_streetcheck_data(postcode, "postcode")
     prices_html = get_streetcheck_data(postcode, "houseprices")
-
     results = ""
+
     # Process postcode data if available
     if postcode_html:
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False) as temp_file:
-            temp_file.write(postcode_html)
-            md = MarkItDown()
-            result = md.convert(temp_file.name)
-            results += result.text_content + "\n\n"  # Add double newline for separation
-            cleanup_temp_file(temp_file.name)
-
+        results += postcode_html + "\n\n"  # Add double newline for separation
     if prices_html:
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False) as temp_file:
-            temp_file.write(prices_html)
-            md = MarkItDown()
-            result = md.convert(temp_file.name)
-            results += result.text_content
-            cleanup_temp_file(temp_file.name)
+        results += prices_html
 
     # get the crime data
     crime_text = get_three_months_data(postcode)
@@ -317,20 +348,32 @@ def main():
 
     # Get summary
     summary = get_content_summary(bedrock_runtime, results)
-    print(f"\n\nSummary for {postcode}:\n{summary}\n")
 
+    # Calculate token estimates and costs
     input_tokens = len(results) // 4
     output_tokens = len(summary) // 4
-
-    # price for Claude Sonnet 3.5 v2 is 0.003 and 0.015
-    # for Nova Pro 1.0 it is 0.0008 and 0.0032
     input_price = input_tokens // 1000 * 0.0008
     output_price = output_tokens // 1000 * 0.0032
 
-    print(f"\nToken Estimation:")
-    print(f"Input tokens (approx): {input_tokens:,} (${input_price:.2f})")
-    print(f"Output tokens (approx): {output_tokens:,}  (${output_price:.2f})")
-    print(f"Total inference cost: ${(input_price + output_price):.2f}")
+    print(f'''
+## Token Usage Statistics
+- Input tokens (approx): {input_tokens:,} (${input_price:.2f})
+- Output tokens (approx): {output_tokens:,} (${output_price:.2f})
+- Total inference cost: ${(input_price + output_price):.2f}
+''')
+    # Prepare the complete output text
+    output_text = f"""# Postcode Summary for {postcode}
+
+{summary}
+"""
+
+    # Write to file
+    try:
+        with open(output_filename, 'w', encoding='utf-8') as f:
+            f.write(output_text)
+        print(f"Summary written to: {output_filename}")
+    except Exception as e:
+        print(f"Error writing to file: {e}")
 
 if __name__ == "__main__":
     main()
