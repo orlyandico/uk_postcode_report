@@ -16,8 +16,10 @@ from markitdown import MarkItDown
 import requests
 
 MODEL_ID = "anthropic.claude-3-5-sonnet-20241022-v2:0"
-#MODEL_ID = "amazon.nova-pro-v1:0"
 AWS_REGION = "us-west-2"
+
+#MODEL_ID = "amazon.nova-pro-v1:0"
+#AWS_REGION = "us-east-1"
 AWS_PROFILE = "us-west-2-profile"
 
 # Suppress the specific datetime warning from botocore
@@ -186,11 +188,11 @@ Instructions:
 ### Summary of [Area Name]
 
 #### Notable Statistics
+- **Quarter Total Crime/Population:** [percentage] ([total crimes]/[population])
 - **Social Rented Housing:** [percentage] ([count]/[total])
+- **Largest Ethnic Group:** [group name] ([percentage])
 - **Households with Deprivation in One or More Dimensions:** [percentage] ([count]/[total])
 - **Unemployment Rate:** [percentage] ([count]/[total])
-- **Quarter Total Crime/Population:** [percentage] ([total crimes]/[population])
-- **Largest Ethnic Group:** [group name] ([percentage])
 - **Recent House Sale:** [price] ([date])
 
 #### General Characteristics
